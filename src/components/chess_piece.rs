@@ -121,7 +121,7 @@ impl ChessPiece {
     //     !(self.is_black)
     // }
 
-    fn get_type(&self) -> String {
+    pub fn get_type(&self) -> String {
         Self::get_type_label(self.piece_type)
     }
 
