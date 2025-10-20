@@ -34,20 +34,20 @@ impl Display for ChessPiece {
             let color = self.get_color();
             let _type = self.get_type();
             if color == "black" {
-                if _type == "pawn" { write!(f, "p") }
-                else if _type == "rook" { write!(f, "r") }
+                if      _type == "pawn"   { write!(f, "p") }
+                else if _type == "rook"   { write!(f, "r") }
                 else if _type == "knight" { write!(f, "n") }
                 else if _type == "bishop" { write!(f, "b") }
-                else if _type == "queen" { write!(f, "q") }
-                else if _type == "king" { write!(f, "k") }
+                else if _type == "queen"  { write!(f, "q") }
+                else if _type == "king"   { write!(f, "k") }
                 else { panic!("Invalid piece type: {}", _type) }
             } else if color == "white" {
-                if _type == "pawn" { write!(f, "P") }
-                else if _type == "rook" { write!(f, "R") }
+                if      _type == "pawn"   { write!(f, "P") }
+                else if _type == "rook"   { write!(f, "R") }
                 else if _type == "knight" { write!(f, "N") }
                 else if _type == "bishop" { write!(f, "B") }
-                else if _type == "queen" { write!(f, "Q") }
-                else if _type == "king" { write!(f, "K") }
+                else if _type == "queen"  { write!(f, "Q") }
+                else if _type == "king"   { write!(f, "K") }
                 else { panic!("Invalid piece type: {}", _type) }
             } else {
                 panic!("Invalid color: {}", color);
@@ -71,7 +71,7 @@ impl ChessPiece {
     }
 
     fn get_type_num(type_label: String) -> u8 {
-        if type_label == "none" { 0 }
+        if      type_label == "none" { 0 }
         else if type_label == "pawn" { 1 }
         else if type_label == "rook" { 2 }
         else if type_label == "knight" { 3 }
@@ -105,8 +105,10 @@ impl ChessPiece {
 
 impl ChessPiece {
 
-    fn get_color(&self) -> String {
-        if self.is_black {
+    pub fn get_color(&self) -> String {
+        if self.is_empty() {
+            String::from("none")
+        } else if self.is_black {
             String::from("black")
         } else {
             String::from("white")
@@ -117,9 +119,9 @@ impl ChessPiece {
     //     self.is_black
     // }
 
-    // fn is_white(&self) -> bool {
-    //     !(self.is_black)
-    // }
+    pub fn is_white(&self) -> bool {
+        !(self.is_black) && !(self.is_empty())
+    }
 
     pub fn get_type(&self) -> String {
         Self::get_type_label(self.piece_type)

@@ -1,4 +1,4 @@
 // crate::components
 
 pub mod chess_board;
-mod chess_piece;
+pub mod chess_piece;

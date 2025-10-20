@@ -1,7 +1,12 @@
 // crate::components::chess_board
 
 use crate::components::chess_piece::ChessPiece;
+use crate::rules::bishop;
+use crate::rules::king;
 use crate::rules::knight;
+use crate::rules::pawn;
+use crate::rules::queen;
+use crate::rules::rook;
 
 use std::fmt::Display;
 
@@ -172,7 +177,7 @@ impl Display for ChessBoard {
 
 impl ChessBoard {
 
-    fn get_rank_label(rank: u8) -> String {
+    pub fn get_rank_label(rank: u8) -> String {
         if rank < 8 {
             (8 - rank).to_string()
         } else {
@@ -197,7 +202,7 @@ impl ChessBoard {
         }
     }
 
-    fn get_file_label(file: u8) -> String {
+    pub fn get_file_label(file: u8) -> String {
         String::from(
             match file {
                 0 => 'a',
@@ -216,7 +221,7 @@ impl ChessBoard {
     }
 
     pub fn get_file(file_label: String) -> u8 {
-        if file_label == "a" { 0 }
+        if      file_label == "a" { 0 }
         else if file_label == "b" { 1 }
         else if file_label == "c" { 2 }
         else if file_label == "d" { 3 }
@@ -226,20 +231,6 @@ impl ChessBoard {
         else if file_label == "h" { 7 }
         else {
             panic!("Invalid file label {}", file_label);
-        }
-    }
-
-    fn is_valid_move(start_rank: u8, start_file: u8, target_rank: u8, target_file: u8, piece: &ChessPiece) -> bool {
-        let _type = piece.get_type();
-        if _type == "none" { false }
-        else if _type == "pawn" { false }
-        else if _type == "rook" { false }
-        else if _type == "knight" { knight::is_valid_move(start_rank, start_file, target_rank, target_file) }
-        else if _type == "bishop" { false }
-        else if _type == "queen" { false }
-        else if _type == "king" { false }
-        else {
-            panic!("Invalid piece type: {}", _type);
         }
     }
 
@@ -268,8 +259,22 @@ impl ChessBoard {
         self.contents[rank as usize][file as usize] = contents;
     }
 
+    fn is_valid_move(&self, start_rank: u8, start_file: u8, target_rank: u8, target_file: u8, piece: &ChessPiece) -> bool {
+        let _type = piece.get_type();
+        if      _type == "none"   { false }
+        else if _type == "pawn"   {   pawn::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
+        else if _type == "rook"   {   rook::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
+        else if _type == "knight" { knight::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
+        else if _type == "bishop" { bishop::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
+        else if _type == "queen"  {  queen::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
+        else if _type == "king"   {   king::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
+        else {
+            panic!("Invalid piece type: {}", _type);
+        }
+    }
+
     pub fn move_piece(&mut self, start_rank: u8, start_file: u8, target_rank: u8, target_file: u8) {
-        if Self::is_valid_move(
+        if self.is_valid_move(
             start_rank, start_file,
             target_rank, target_file,
             self.borrow_space_contents(start_rank, start_file)

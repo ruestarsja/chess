@@ -1,32 +1,24 @@
-// crate::rules::knight
+// crate::rules::king
 
 use crate::components::chess_board::ChessBoard;
 use crate::components::chess_piece::ChessPiece;
 
-const POSSIBLE_MOVES: [[i8; 2]; 8] = [
-    [2, 1],
-    [1, 2],
-    [-1, 2],
-    [-2, 1],
-    [-2, -1],
-    [-1, -2],
-    [1, -2],
-    [2, -1]
-];
-
 pub fn is_valid_move(start_rank: u8, start_file: u8, target_rank: u8, target_file: u8, chess_board: &ChessBoard) -> bool {
 
-    println!("VALIDATING KNIGHT MOVE:");
+    println!("VALIDATING KING MOVE:");
+
+    // TODO: CHECK FOR AND ALLOW CASTLING (have to figure out a way to move the rook too)
+    // TODO: ENSURE THERE'S NO ACTIVE THREAT ON TARGET
 
     // Ensure start is on the board
     if start_rank >= 8 || start_file >= 8 {
 
-        println!("\tOH NO! Start is not on the board.");
+        println!("\tOH NO! Start is not on the board");
 
         panic!("Invalid starting rank or file: rank {}, file {}", start_rank, start_file);
     }
 
-    println!("\tStart is on the board.");
+    println!("Start is on the board.");
 
     // Ensure target is on the board
     if target_rank >= 8 || target_file >= 8 {
@@ -36,7 +28,7 @@ pub fn is_valid_move(start_rank: u8, start_file: u8, target_rank: u8, target_fil
         return false;
     }
 
-    println!("\tTarget is on the board.");
+    println!("Target is on the board.");
 
     // Ensure start and target are different spaces
     if start_rank == target_rank && start_file == target_file {
@@ -46,32 +38,32 @@ pub fn is_valid_move(start_rank: u8, start_file: u8, target_rank: u8, target_fil
         return false;
     }
 
-    println!("\tStart and target are different spaces.");
+    println!("Start and target are different spaces.");
 
     // Ensure target doesn't contain a friendly piece
     let start_space: &ChessPiece = chess_board.borrow_space_contents(start_rank, start_file);
     let target_space: &ChessPiece = chess_board.borrow_space_contents(target_rank, target_file);
     if start_space.get_color() == target_space.get_color() {
-        
+
         println!("\tOH NO! Target contains a friendly piece.");
 
         return false;
     }
 
-    println!("\tTarget does not contain a friendly piece.");
+    println!("Target doesn't contain a friendly piece.");
 
-    // Ensure move is a valid pattern for a knight
-    let possible_move: [i8; 2] = [(target_rank as i8) - (start_rank as i8), (target_file as i8) - (start_file as i8)];
-    if !POSSIBLE_MOVES.contains(&possible_move) {
+    // Ensure target is within one square of start
+    if ( (start_file as i8 - target_file as i8).abs() > 1 )
+    || ( (start_rank as i8 - target_rank as i8).abs() > 1 ) {
 
-        println!("\tOH NO! Move is not a valid pattern for a knight.");
+        println!("\tOH NO! Target is not within one square of start.");
 
         return false;
     }
 
-    println!("\tMove is a valid pattern for a knight.");
+    println!("Target is within one square of start.");
 
-    println!("KNIGHT MOVE PASSED ALL CHECKS.");
+    println!("KING MOVE PASSED ALL CHECKS.");
 
     // Passed all checks
     return true;
