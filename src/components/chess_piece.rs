@@ -2,6 +2,8 @@
 
 use std::fmt::Display;
 
+use crate::utils::logs::log;
+
 
 #[derive(Clone)]
 
@@ -40,7 +42,16 @@ impl Display for ChessPiece {
                 else if _type == "bishop" { write!(f, "b") }
                 else if _type == "queen"  { write!(f, "q") }
                 else if _type == "king"   { write!(f, "k") }
-                else { panic!("Invalid piece type: {}", _type) }
+                else {
+                    log(
+                        "ERROR",
+                        format!(
+                            "crate::chess_piece::ChessPiece::fmt used Self::get_type and got the invalid piece type \"{}\"",
+                            _type
+                        )
+                    );
+                    panic!("Invalid piece type: {}", _type)
+                }
             } else if color == "white" {
                 if      _type == "pawn"   { write!(f, "P") }
                 else if _type == "rook"   { write!(f, "R") }
@@ -48,8 +59,24 @@ impl Display for ChessPiece {
                 else if _type == "bishop" { write!(f, "B") }
                 else if _type == "queen"  { write!(f, "Q") }
                 else if _type == "king"   { write!(f, "K") }
-                else { panic!("Invalid piece type: {}", _type) }
+                else {
+                    log(
+                        "ERROR",
+                        format!(
+                            "crate::chess_piece::ChessPiece::fmt used Self::get_type and got the invalid piece type \"{}\"",
+                            _type
+                        )
+                    );
+                    panic!("Invalid piece type: {}", _type)
+                }
             } else {
+                log(
+                    "ERROR",
+                    format!(
+                        "crate::chess_piece::ChessPiece::fmt used Self::get_color and got the invalid piece color \"{}\"",
+                        color
+                    )
+                );
                 panic!("Invalid color: {}", color);
             }
         }
@@ -62,6 +89,13 @@ impl ChessPiece {
 
     pub fn construct(color: String, piece_type: String) -> Self {
         if !( color == "black" || color == "white" ) {
+            log(
+                "ERROR",
+                format!(
+                    "crate::chess_piece::ChessPiece::construct received the invalid piece color \"{}\"",
+                    color
+                )
+            );
             panic!("Invalid color: {} (expected \"white\" or \"black\")", color);
         }
         Self {
@@ -79,6 +113,13 @@ impl ChessPiece {
         else if type_label == "queen" { 5 }
         else if type_label == "king" { 6 }
         else {
+            log(
+                "ERROR",
+                format!(
+                    "crate::chess_piece::ChessPiece::get_type_num received the invalid type label \"{}\"",
+                    type_label
+                )
+            );
             panic!("Invalid type label: {}", type_label);
         }
     }
@@ -94,6 +135,13 @@ impl ChessPiece {
                 5 => "queen",
                 6 => "king",
                 _ => {
+                    log(
+                        "ERROR",
+                        format!(
+                            "crate::chess_piece::ChessPiece::get_type_label received the invalid type number {}",
+                            type_num
+                        )
+                    );
                     panic!("Invalid type num: {}", type_num);
                 }
             }

@@ -10,6 +10,8 @@ use text_io::read;
 use components::chess_board::ChessBoard;
 use utils::logs::init_logs;
 
+use crate::utils::logs::log;
+
 
 fn main() {
     
@@ -56,5 +58,7 @@ fn main() {
         }
 
     }
+
+    log("INFO", "The program should now terminate.");
 
 }

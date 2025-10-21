@@ -11,7 +11,7 @@ pub fn init_logs() {
     match file_result {
         Ok(_) => {},
         Err(_) => {
-            panic!("Something went wrong while creating {}.", LOGPATH);
+            panic!("LOGERROR: Something went wrong while creating {}.", LOGPATH);
         }
     }
 }
@@ -26,14 +26,14 @@ pub fn log(label: impl Into<String>, msg: impl Into<String>) {
     let mut log_file = match file_result {
         Ok(_) => file_result.unwrap(),
         Err(_) => {
-            panic!("Something went wrong while opening {}.", LOGPATH);
+            panic!("LOGERROR: Something went wrong while opening {}.", LOGPATH);
         }
     };
     let write_result = writeln!(&mut log_file, "{}", log);
     match write_result {
         Ok(_) => {},
         Err(_) => {
-            panic!("Something went wrong while appending to {}", LOGPATH);
+            panic!("LOGERROR: Something went wrong while appending to {}", LOGPATH);
         }
     }
 }

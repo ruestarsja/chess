@@ -7,6 +7,7 @@ use crate::rules::knight;
 use crate::rules::pawn;
 use crate::rules::queen;
 use crate::rules::rook;
+use crate::utils::logs::log;
 
 use std::fmt::Display;
 
@@ -181,6 +182,13 @@ impl ChessBoard {
         if rank < 8 {
             (8 - rank).to_string()
         } else {
+            log(
+                "ERROR",
+                format!(
+                    "crate::components::chess_board::ChessBoard::get_rank_label received the invalid rank number {}",
+                    rank
+                )
+            );
             panic!("Invalid rank number: {}", rank);
         }
     }
@@ -193,10 +201,24 @@ impl ChessBoard {
                 if rank < 8 {
                     rank
                 } else {
+                    log(
+                        "ERROR",
+                        format!(
+                            "crate::components::chess_board::ChessBoard::get_rank received the invalid rank label \"{}\"",
+                            rank_label
+                        )
+                    );
                     panic!("Invalid rank label: {}", rank_label);
                 }
             },
             Err(_) => {
+                log(
+                    "ERROR",
+                    format!(
+                        "crate::components::chess_board::ChessBoard::get_rank received the invalid rank label \"{}\"",
+                        rank_label
+                    )
+                );
                 panic!("Invalid rank label: {}", rank_label);
             }
         }
@@ -214,6 +236,13 @@ impl ChessBoard {
                 6 => 'g',
                 7 => 'h',
                 _ => {
+                    log(
+                        "ERROR",
+                        format!(
+                            "crate::components::chess_board::ChessBoard::get_file_label received the invalid file number {}",
+                            file
+                        )
+                    );
                     panic!("Invalid file number: {}", file);
                 }
             }
@@ -230,6 +259,13 @@ impl ChessBoard {
         else if file_label == "g" { 6 }
         else if file_label == "h" { 7 }
         else {
+            log(
+                "ERROR",
+                format!(
+                    "crate::components::chess_board::ChessBoard::get_file_label received the invalid file label {}",
+                    file_label
+                )
+            );
             panic!("Invalid file label {}", file_label);
         }
     }
@@ -269,6 +305,13 @@ impl ChessBoard {
         else if _type == "queen"  {  queen::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
         else if _type == "king"   {   king::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
         else {
+            log(
+                "ERROR",
+                format!(
+                    "crate::components::chess_board::ChessBoard::is_valid_move received a ChessPiece with the invalid type \"{}\".",
+                    _type
+                )
+            );
             panic!("Invalid piece type: {}", _type);
         }
     }
@@ -282,10 +325,30 @@ impl ChessBoard {
             target_rank, target_file,
             self.borrow_space_contents(start_rank, start_file)
         ) {
+            log(
+                "INFO",
+                format!(
+                    "Performing move {}{} -> {}{}",
+                    Self::get_file_label(start_file),
+                    Self::get_rank_label(start_rank),
+                    Self::get_file_label(target_file),
+                    Self::get_rank_label(target_rank)
+                )
+            );
             self.set_space_contents(target_rank, target_file, self.clone_space_contents(start_rank, start_file));
             self.set_space_contents(start_rank, start_file, ChessPiece::default());
             return true;
         }
+        log(
+            "INFO",
+            format!(
+                "Skipped move {}{} -> {}{} due to it being invalid.",
+                Self::get_file_label(start_file),
+                Self::get_rank_label(start_rank),
+                Self::get_file_label(target_file),
+                Self::get_rank_label(target_rank)
+            )
+        );
         return false;
     }
 
