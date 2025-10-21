@@ -2,16 +2,20 @@ extern crate text_io;
 
 mod components;
 mod rules;
+mod utils;
 
 
 use text_io::read;
 
 use components::chess_board::ChessBoard;
+use utils::logs::init_logs;
 
 
 fn main() {
     
     let mut chess_board = ChessBoard::default();
+    let mut is_black_turn: bool = false;
+    init_logs();
 
     let mut running: bool = true;
     while running {
