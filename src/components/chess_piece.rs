@@ -115,9 +115,9 @@ impl ChessPiece {
         }
     }
 
-    // fn is_black(&self) -> bool {
-    //     self.is_black
-    // }
+    pub fn is_black(&self) -> bool {
+        self.is_black
+    }
 
     pub fn is_white(&self) -> bool {
         !(self.is_black) && !(self.is_empty())

@@ -43,12 +43,16 @@ fn main() {
             let target_file_label: String = read!("{}\n");
             print!(" Target Rank Label: ");
             let target_rank_label: String = read!("{}\n");
-            chess_board.move_piece(
+            let success = chess_board.move_piece(
+                is_black_turn,
                 ChessBoard::get_rank(start_rank_label),
                 ChessBoard::get_file(start_file_label),
                 ChessBoard::get_rank(target_rank_label),
                 ChessBoard::get_file(target_file_label)
             );
+            if success {
+                is_black_turn = !is_black_turn;
+            }
         }
 
     }

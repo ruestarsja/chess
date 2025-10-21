@@ -273,7 +273,10 @@ impl ChessBoard {
         }
     }
 
-    pub fn move_piece(&mut self, start_rank: u8, start_file: u8, target_rank: u8, target_file: u8) {
+    pub fn move_piece(&mut self, is_black_turn: bool, start_rank: u8, start_file: u8, target_rank: u8, target_file: u8) -> bool {
+        if self.borrow_space_contents(start_rank, start_file).is_black() != is_black_turn {
+            return false;
+        }
         if self.is_valid_move(
             start_rank, start_file,
             target_rank, target_file,
@@ -281,7 +284,9 @@ impl ChessBoard {
         ) {
             self.set_space_contents(target_rank, target_file, self.clone_space_contents(start_rank, start_file));
             self.set_space_contents(start_rank, start_file, ChessPiece::default());
+            return true;
         }
+        return false;
     }
 
 }
