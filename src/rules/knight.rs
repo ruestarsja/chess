@@ -65,7 +65,7 @@ pub fn is_valid_move(start_rank: u8, start_file: u8, target_rank: u8, target_fil
     
 }
 
-// fn get_valid_moves(start_rank: u8, start_file: u8) -> Vec<[u8; 2]> {
+// pub fn get_valid_moves(start_rank: u8, start_file: u8) -> Vec<[u8; 2]> {
 //     if start_rank >= 8 || start_file >= 8 {
 //         panic!("Invalid starting rank or file: rank {}, file {}", start_rank, start_file);
 //     }

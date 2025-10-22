@@ -249,26 +249,26 @@ impl ChessBoard {
         )
     }
 
-    pub fn get_file(file_label: String) -> u8 {
-        if      file_label == "a" { 0 }
-        else if file_label == "b" { 1 }
-        else if file_label == "c" { 2 }
-        else if file_label == "d" { 3 }
-        else if file_label == "e" { 4 }
-        else if file_label == "f" { 5 }
-        else if file_label == "g" { 6 }
-        else if file_label == "h" { 7 }
-        else {
-            log(
-                "ERROR",
-                format!(
-                    "crate::components::chess_board::ChessBoard::get_file_label received the invalid file label {}",
-                    file_label
-                )
-            );
-            panic!("Invalid file label {}", file_label);
-        }
-    }
+    // pub fn get_file(file_label: String) -> u8 {
+    //     if      file_label == "a" { 0 }
+    //     else if file_label == "b" { 1 }
+    //     else if file_label == "c" { 2 }
+    //     else if file_label == "d" { 3 }
+    //     else if file_label == "e" { 4 }
+    //     else if file_label == "f" { 5 }
+    //     else if file_label == "g" { 6 }
+    //     else if file_label == "h" { 7 }
+    //     else {
+    //         log(
+    //             "ERROR",
+    //             format!(
+    //                 "crate::components::chess_board::ChessBoard::get_file_label received the invalid file label {}",
+    //                 file_label
+    //             )
+    //         );
+    //         panic!("Invalid file label {}", file_label);
+    //     }
+    // }
 
 }
 
