@@ -37,7 +37,7 @@ fn main() {
         .window_setup(
             conf::WindowSetup::default()
                 .title("Chess")
-                .icon("/sprites/")
+                .icon("/sprites/black_knight.png")
         )
         .add_resource_path(resource_dir)
         .build();
