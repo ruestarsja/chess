@@ -11,7 +11,7 @@ use ggez::GameResult;
 use ggez::conf;
 use ggez::event;
 use ggez::graphics;
-use text_io::read;
+// use text_io::read;
 
 use crate::components::chess_board::ChessBoard;
 use crate::utils::logs::init_logs;
@@ -68,12 +68,13 @@ struct Game {
     is_black_turn: bool,
     screen_coords: graphics::Rect,
     sprites: HashMap<(String, String), graphics::Image>,
+    selected_space: Option<(u8, u8)>,
 }
 
 
 impl Game {
 
-    pub fn construct(_ctx: &mut Context) -> Self {
+    pub fn construct(ctx: &mut Context) -> Self {
         init_logs();
 
         // load images, music, etc.
@@ -95,7 +96,7 @@ impl Game {
                 sprites.insert(
                     (color.clone(), _type.clone()),
                     graphics::Image::from_path(
-                        _ctx,
+                        ctx,
                         format!("/sprites/{}_{}.png", color, _type)
                     ).expect("Could not open sprite.")
                 );
@@ -108,9 +109,10 @@ impl Game {
             chess_board: Default::default(),
             is_black_turn: false,
             screen_coords: graphics::Rect::new(
-                0., 0., _ctx.gfx.drawable_size().0, _ctx.gfx.drawable_size().1
+                0., 0., ctx.gfx.drawable_size().0, ctx.gfx.drawable_size().1
             ),
             sprites: sprites,
+            selected_space: None,
         }
     }
 
@@ -119,41 +121,41 @@ impl Game {
 
 impl event::EventHandler for Game {
 
-    fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        println!();
-        println!("{}", self.chess_board);
-        println!();
-        print!(" > ");
+    fn update(&mut self, ctx: &mut Context) -> GameResult {
+        // println!();
+        // println!("{}", self.chess_board);
+        // println!();
+        // print!(" > ");
         
-        let input: String = read!("{}\n");
+        // let input: String = read!("{}\n");
 
-        if input == "exit" {
-            println!();
-            println!("Goodbye!");
-            println!();
-            _ctx.request_quit();
+        // if input == "exit" {
+        //     println!();
+        //     println!("Goodbye!");
+        //     println!();
+        //     ctx.request_quit();
 
-        } else if input == "move" {
-            println!();
-            print!(" Starting File Label: ");
-            let start_file_label: String = read!("{}\n");
-            print!(" Starting Rank Label: ");
-            let start_rank_label: String = read!("{}\n");
-            print!(" Target File Label: ");
-            let target_file_label: String = read!("{}\n");
-            print!(" Target Rank Label: ");
-            let target_rank_label: String = read!("{}\n");
-            let success = self.chess_board.move_piece(
-                self.is_black_turn,
-                ChessBoard::get_rank(start_rank_label),
-                ChessBoard::get_file(start_file_label),
-                ChessBoard::get_rank(target_rank_label),
-                ChessBoard::get_file(target_file_label)
-            );
-            if success {
-                self.is_black_turn = !self.is_black_turn;
-            }
-        }
+        // } else if input == "move" {
+        //     println!();
+        //     print!(" Starting File Label: ");
+        //     let start_file_label: String = read!("{}\n");
+        //     print!(" Starting Rank Label: ");
+        //     let start_rank_label: String = read!("{}\n");
+        //     print!(" Target File Label: ");
+        //     let target_file_label: String = read!("{}\n");
+        //     print!(" Target Rank Label: ");
+        //     let target_rank_label: String = read!("{}\n");
+        //     let success = self.chess_board.move_piece(
+        //         self.is_black_turn,
+        //         ChessBoard::get_rank(start_rank_label),
+        //         ChessBoard::get_file(start_file_label),
+        //         ChessBoard::get_rank(target_rank_label),
+        //         ChessBoard::get_file(target_file_label)
+        //     );
+        //     if success {
+        //         self.is_black_turn = !self.is_black_turn;
+        //     }
+        // }
         Ok(())
     }
 
@@ -228,6 +230,9 @@ impl event::EventHandler for Game {
                     //     )
                     // );
                 }
+                if self.selected_space == Some((file, rank)) {
+                    
+                }
                 file += 1;
             }
             rank += 1;
@@ -236,6 +241,27 @@ impl event::EventHandler for Game {
 
         for mesh in meshes {
             canvas.draw(&mesh, graphics::DrawParam::default());
+        }
+
+        match self.selected_space {
+            None => (),
+            Some(_) => {
+                let selected_space_mesh = graphics::Mesh::new_rectangle(
+                    ctx,
+                    graphics::DrawMode::stroke(5.0),
+                    graphics::Rect::new(
+                        (board_x + 20.0) + (self.selected_space.unwrap().0 as f32 * ((board_side_len - 40.0) / 8.0)),
+                        (board_y + 20.0) + (self.selected_space.unwrap().1 as f32 * ((board_side_len - 40.0) / 8.0)),
+                        (board_side_len - 40.0) / 8.0,
+                        (board_side_len - 40.0) / 8.0
+                    ),
+                    graphics::Color::from_rgb(100, 200, 100)
+                )?;
+                canvas.draw(
+                    &selected_space_mesh,
+                    graphics::DrawParam::default()
+                );
+            }
         }
 
         rank = 0;
@@ -290,14 +316,131 @@ impl event::EventHandler for Game {
         canvas.finish(ctx)
     }
 
-    fn resize_event(&mut self, _ctx: &mut Context, _width: f32, _height: f32) -> GameResult {
+    fn mouse_button_down_event(
+            &mut self,
+            ctx: &mut Context,
+            button: event::MouseButton,
+            x: f32,
+            y: f32,
+        ) -> GameResult {
+        log(
+            "INFO",
+            format!(
+                "User clicked at coordinates (x {}, y {}).",
+                x, y
+            )
+        );
+
+        let board_side_len = if self.screen_coords.w < self.screen_coords.h { self.screen_coords.w } else { self.screen_coords.h };
+        let margin = (self.screen_coords.w - self.screen_coords.h).abs() / 2.0;
+        let board_x = if self.screen_coords.w < self.screen_coords.h { 0.0 } else { margin };
+        let board_y = if self.screen_coords.w < self.screen_coords.h { margin } else { 0.0 };
+
+        if x < (board_x + 20.0)
+        || x > (board_x + board_side_len - 20.0)
+        || y < (board_y + 20.0)
+        || y > (board_y + board_side_len - 20.0) {
+            log(
+                "INFO",
+                "User did not click on a space."
+            );
+            return Ok(());
+        } else {
+            let file = ((x - (board_x + 20.0)) / ((board_side_len - 40.0) / 8.0)).floor() as u8;
+            let rank = ((y - (board_y + 20.0)) / ((board_side_len - 40.0) / 8.0)).floor() as u8;
+            log(
+                "INFO",
+                format!(
+                    "User clicked on the space {}{}.",
+                    ChessBoard::get_file_label(file),
+                    ChessBoard::get_rank_label(rank)
+                )
+            );
+            match self.selected_space {
+                None => {
+                    log("INFO", "Didn't have a space selected previously.");
+                    let piece = self.chess_board.borrow_space_contents(rank, file);
+                    log(
+                        "INFO",
+                        format!(
+                            "\n\tpiece is black: {}\n\tpiece is white: {}\n\tis black turn: {}\n\t! is black turn: {}",
+                            piece.is_black(), piece.is_white(), self.is_black_turn, !self.is_black_turn
+                        )
+                    );
+                    match (piece.is_black() && self.is_black_turn)
+                       || (piece.is_white() && !self.is_black_turn) {
+                        true => {
+                            log("INFO", "Selected the clicked space.");
+                            self.selected_space = Some((file, rank));
+                            return Ok(());
+                        }
+                        false => {
+                            log("INFO", "Did not select the clicked space; is not the correct turn.");
+                            return Ok(());
+                        }
+                    }
+                },
+                Some(space) => {
+                    log(
+                        "INFO",
+                        format!(
+                            "Previously had {}{} selected.",
+                            ChessBoard::get_file_label(self.selected_space.unwrap().0),
+                            ChessBoard::get_rank_label(self.selected_space.unwrap().1)
+                        )
+                    );
+                    if space == (file, rank) {
+                        log("INFO", "User clicked the previously selected space.");
+                        self.selected_space = None;
+                        log("INFO", "Unselected the previously selected space.");
+                        return Ok(());
+                    } else {
+                        log("INFO", "User clicked a space other than the previously selected space.");
+                        log("INFO", "Trying to move piece from the previously selected space to the newly clicked space.");
+                        if self.chess_board.move_piece(
+                            self.is_black_turn,
+                            self.selected_space.unwrap().1,
+                            self.selected_space.unwrap().0,
+                            rank,
+                            file
+                        ) {
+                            log("INFO", "Moved the piece from the previously selected space to the newly clicked space.");
+                            self.is_black_turn = !self.is_black_turn;
+                            self.selected_space = None;
+                            return Ok(());
+                        } else {
+                            log("INFO", "Could not move the piece from the previously selected space to the newly clicked space.");
+                            let piece = self.chess_board.borrow_space_contents(rank, file);
+                            match (piece.is_black() && self.is_black_turn)
+                               || (piece.is_white() && !self.is_black_turn) {
+                                    true => {
+                                        log("INFO", "Selected the clicked space.");
+                                        self.selected_space = Some((file, rank));
+                                        return Ok(());
+                                    }
+                                    false => {
+                                        log("INFO", "Did not select the clicked space; is not the correct turn.");
+                                        self.selected_space = None;
+                                        return Ok(());
+                                    }
+                                }
+                            log("INFO", "Updated to select the newly clicked space.");
+                            return Ok(());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn resize_event(&mut self, ctx: &mut Context, width: f32, height: f32) -> GameResult {
         self.screen_coords = graphics::Rect::new(
-            0., 0., _width, _height
+            0., 0., width, height
         );
         Ok(())
     }
 
-    fn quit_event(&mut self, _ctx: &mut Context) -> Result<bool, ggez::GameError> {
+    fn quit_event(&mut self, ctx: &mut Context) -> Result<bool, ggez::GameError> {
         log("INFO", "The program will exit now.");
         // Ok(true) = keep running, Ok(false) = exit
         Ok(false)
