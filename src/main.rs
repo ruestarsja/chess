@@ -116,58 +116,22 @@ impl Game {
         }
     }
 
-}
-
-
-impl event::EventHandler for Game {
-
-    fn update(&mut self, ctx: &mut Context) -> GameResult {
-        // println!();
-        // println!("{}", self.chess_board);
-        // println!();
-        // print!(" > ");
-        
-        // let input: String = read!("{}\n");
-
-        // if input == "exit" {
-        //     println!();
-        //     println!("Goodbye!");
-        //     println!();
-        //     ctx.request_quit();
-
-        // } else if input == "move" {
-        //     println!();
-        //     print!(" Starting File Label: ");
-        //     let start_file_label: String = read!("{}\n");
-        //     print!(" Starting Rank Label: ");
-        //     let start_rank_label: String = read!("{}\n");
-        //     print!(" Target File Label: ");
-        //     let target_file_label: String = read!("{}\n");
-        //     print!(" Target Rank Label: ");
-        //     let target_rank_label: String = read!("{}\n");
-        //     let success = self.chess_board.move_piece(
-        //         self.is_black_turn,
-        //         ChessBoard::get_rank(start_rank_label),
-        //         ChessBoard::get_file(start_file_label),
-        //         ChessBoard::get_rank(target_rank_label),
-        //         ChessBoard::get_file(target_file_label)
-        //     );
-        //     if success {
-        //         self.is_black_turn = !self.is_black_turn;
-        //     }
-        // }
-        Ok(())
+    fn select_space(&mut self, file: u8, rank: u8) {
+        let piece = self.chess_board.borrow_space_contents(rank, file);
+        match (piece.is_black() && self.is_black_turn)
+            || (piece.is_white() && !self.is_black_turn) {
+            true => {
+                log("INFO", "Selected the clicked space.");
+                self.selected_space = Some((file, rank));
+            }
+            false => {
+                log("INFO", "Did not select the clicked space; is not the correct turn.");
+                self.selected_space = None;
+            }
+        }
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        // log("INFO", "Starting new draw.");
-        let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb(50, 45, 40));
-        canvas.set_screen_coordinates(self.screen_coords);
-
-        let board_side_len = if self.screen_coords.w < self.screen_coords.h { self.screen_coords.w } else { self.screen_coords.h };
-        let margin = (self.screen_coords.w - self.screen_coords.h).abs() / 2.0;
-        let board_x = if self.screen_coords.w < self.screen_coords.h { 0.0 } else { margin };
-        let board_y = if self.screen_coords.w < self.screen_coords.h { margin } else { 0.0 };
+    fn make_board_meshes(&self, ctx: &mut Context, board_x: f32, board_y: f32, board_side_len: f32) -> Result<Vec<graphics::Mesh>, ggez::GameError> {
 
         let mut meshes: Vec<graphics::Mesh> = vec![];
         
@@ -197,9 +161,7 @@ impl event::EventHandler for Game {
                 ),
                 graphics::Color::from_rgb(140, 110, 65)
             )?
-        );
-
-        let mut rank = 0;
+        );let mut rank = 0;
         while rank < 8 {
             let mut file = 0;
             while file < 8 {
@@ -217,18 +179,6 @@ impl event::EventHandler for Game {
                             graphics::Color::from_rgb(200, 180, 160)
                         )?
                     );
-                    // log(
-                    //     "INFO",
-                    //     format!(
-                    //         "Added light square at row {}, col {}: ( x:{}, y:{}, w:{}, h:{} ).",
-                    //         row,
-                    //         col,
-                    //         (board_x + 20.0) + (col as f32 * ((board_side_len - 40.0) / 8.0)),
-                    //         (board_y + 20.0) + (row as f32 * ((board_side_len - 40.0) / 8.0)),
-                    //         (board_side_len - 40.0) / 8.0,
-                    //         (board_side_len - 40.0) / 8.0
-                    //     )
-                    // );
                 }
                 if self.selected_space == Some((file, rank)) {
                     
@@ -236,10 +186,38 @@ impl event::EventHandler for Game {
                 file += 1;
             }
             rank += 1;
-            // log("INFO", format!("Finished row, is now on row {}", row));
         }
 
-        for mesh in meshes {
+        return Ok(meshes);
+    }
+
+}
+
+
+impl event::EventHandler for Game {
+
+    fn update(&mut self, _ctx: &mut Context) -> GameResult {
+        // any logic that isn't directly in response to a user action
+        Ok(())
+    }
+
+    fn draw(&mut self, ctx: &mut Context) -> GameResult {
+        let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::from_rgb(50, 45, 40));
+        canvas.set_screen_coordinates(self.screen_coords);
+
+        let board_side_len = if self.screen_coords.w < self.screen_coords.h { self.screen_coords.w } else { self.screen_coords.h };
+        let margin = (self.screen_coords.w - self.screen_coords.h).abs() / 2.0;
+        let board_x = if self.screen_coords.w < self.screen_coords.h { 0.0 } else { margin };
+        let board_y = if self.screen_coords.w < self.screen_coords.h { margin } else { 0.0 };
+
+        let board_meshes = self.make_board_meshes(
+            ctx,
+            board_x,
+            board_y,
+            board_side_len
+        )?;
+
+        for mesh in board_meshes {
             canvas.draw(&mesh, graphics::DrawParam::default());
         }
 
@@ -264,7 +242,7 @@ impl event::EventHandler for Game {
             }
         }
 
-        rank = 0;
+        let mut rank: u8 = 0;
         while rank < 8 {
             let mut file = 0;
             while file < 8 {
@@ -295,18 +273,6 @@ impl event::EventHandler for Game {
                                 ((board_side_len - 40.0) / 8.0) / sprite.height() as f32
                             ))
                     );
-                    // log(
-                    //     "INFO",
-                    //     format!(
-                    //         "Drew sprite for {} {} at rect: x {}, y {}, w {}, h {}",
-                    //         piece.get_color(),
-                    //         piece.get_type(),
-                    //         board_x + 20.0 + (file as f32 * ((board_side_len - 40.0) / 8.0)),
-                    //         board_y + 20.0 + (rank as f32 * ((board_side_len - 40.0) / 8.0)),
-                    //         ((board_side_len - 40.0) / 8.0) / sprite.width() as f32,
-                    //         ((board_side_len - 40.0) / 8.0) / sprite.height() as f32
-                    //     )
-                    // );
                 }
                 file += 1;
             }
@@ -318,8 +284,8 @@ impl event::EventHandler for Game {
 
     fn mouse_button_down_event(
             &mut self,
-            ctx: &mut Context,
-            button: event::MouseButton,
+            _ctx: &mut Context,
+            _button: event::MouseButton,
             x: f32,
             y: f32,
         ) -> GameResult {
@@ -359,26 +325,8 @@ impl event::EventHandler for Game {
             match self.selected_space {
                 None => {
                     log("INFO", "Didn't have a space selected previously.");
-                    let piece = self.chess_board.borrow_space_contents(rank, file);
-                    log(
-                        "INFO",
-                        format!(
-                            "\n\tpiece is black: {}\n\tpiece is white: {}\n\tis black turn: {}\n\t! is black turn: {}",
-                            piece.is_black(), piece.is_white(), self.is_black_turn, !self.is_black_turn
-                        )
-                    );
-                    match (piece.is_black() && self.is_black_turn)
-                       || (piece.is_white() && !self.is_black_turn) {
-                        true => {
-                            log("INFO", "Selected the clicked space.");
-                            self.selected_space = Some((file, rank));
-                            return Ok(());
-                        }
-                        false => {
-                            log("INFO", "Did not select the clicked space; is not the correct turn.");
-                            return Ok(());
-                        }
-                    }
+                    self.select_space(file, rank);
+                    return Ok(());
                 },
                 Some(space) => {
                     log(
@@ -410,21 +358,7 @@ impl event::EventHandler for Game {
                             return Ok(());
                         } else {
                             log("INFO", "Could not move the piece from the previously selected space to the newly clicked space.");
-                            let piece = self.chess_board.borrow_space_contents(rank, file);
-                            match (piece.is_black() && self.is_black_turn)
-                               || (piece.is_white() && !self.is_black_turn) {
-                                    true => {
-                                        log("INFO", "Selected the clicked space.");
-                                        self.selected_space = Some((file, rank));
-                                        return Ok(());
-                                    }
-                                    false => {
-                                        log("INFO", "Did not select the clicked space; is not the correct turn.");
-                                        self.selected_space = None;
-                                        return Ok(());
-                                    }
-                                }
-                            log("INFO", "Updated to select the newly clicked space.");
+                            self.select_space(file, rank);
                             return Ok(());
                         }
                     }
@@ -433,14 +367,14 @@ impl event::EventHandler for Game {
         }
     }
 
-    fn resize_event(&mut self, ctx: &mut Context, width: f32, height: f32) -> GameResult {
+    fn resize_event(&mut self, _ctx: &mut Context, width: f32, height: f32) -> GameResult {
         self.screen_coords = graphics::Rect::new(
             0., 0., width, height
         );
         Ok(())
     }
 
-    fn quit_event(&mut self, ctx: &mut Context) -> Result<bool, ggez::GameError> {
+    fn quit_event(&mut self, _ctx: &mut Context) -> Result<bool, ggez::GameError> {
         log("INFO", "The program will exit now.");
         // Ok(true) = keep running, Ok(false) = exit
         Ok(false)
