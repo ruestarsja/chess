@@ -7,7 +7,6 @@ use crate::utils::logs::log;
 pub fn is_valid_move(start_rank: u8, start_file: u8, target_rank: u8, target_file: u8, chess_board: &ChessBoard, last_move: &Option<((u8, u8), (u8, u8))>) -> bool {
 
     log("INFO", "Validating a potential pawn move...");
-    log("NOTE", "crate::rules::pawn::is_valid_move does not currently check for and allow en passant.");
     log("NOTE", "crate::rules::king::is_valid_move does not currently check for and allow pawn promotion.");
 
     // TODO: CHECK FOR AND ALLOW EN PASSANT (have to figure out a way to capture the other pawn too)
