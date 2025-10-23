@@ -179,9 +179,9 @@ impl ChessPiece {
         self.get_type() == "none"
     }
 
-    // fn is_pawn(&self) -> bool {
-    //     self.get_type() == "pawn"
-    // }
+    pub fn is_pawn(&self) -> bool {
+        self.get_type() == "pawn"
+    }
 
     // fn is_rook(&self) -> bool {
     //     self.get_type() == "rook"

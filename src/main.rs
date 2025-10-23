@@ -72,6 +72,7 @@ struct Game {
     screen_dims: graphics::Rect,
     sprites: HashMap<(String, String), graphics::Image>,
     selected_space: Option<(u8, u8)>,
+    last_move: Option<((u8, u8), (u8, u8))>,
 }
 
 
@@ -117,6 +118,7 @@ impl Game {
             ),
             sprites: sprites,
             selected_space: None,
+            last_move: None,
         }
     }
 
@@ -376,7 +378,8 @@ impl event::EventHandler for Game {
                             self.selected_space.unwrap().1,
                             self.selected_space.unwrap().0,
                             rank,
-                            file
+                            file,
+                            &mut self.last_move
                         ) {
                             log("INFO", "Moved the piece from the previously selected space to the newly clicked space.");
                             // ...swap turn and unselect
@@ -413,4 +416,3 @@ impl event::EventHandler for Game {
     }
 
 }
-

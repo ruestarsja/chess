@@ -4,7 +4,7 @@ use crate::components::chess_board::ChessBoard;
 use crate::components::chess_piece::ChessPiece;
 use crate::utils::logs::log;
 
-pub fn is_valid_move(start_rank: u8, start_file: u8, target_rank: u8, target_file: u8, chess_board: &ChessBoard) -> bool {
+pub fn is_valid_move(start_rank: u8, start_file: u8, target_rank: u8, target_file: u8, chess_board: &ChessBoard, last_move: &Option<((u8, u8), (u8, u8))>) -> bool {
 
     log("INFO", "Validating a potential pawn move...");
     log("NOTE", "crate::rules::pawn::is_valid_move does not currently check for and allow en passant.");
@@ -95,19 +95,46 @@ pub fn is_valid_move(start_rank: u8, start_file: u8, target_rank: u8, target_fil
         } else {
             log("INFO", "The target position is in an adjacent file to the starting position.");
 
-            // Ensure target contains a piece
-            if chess_board.borrow_space_contents(target_rank, target_file).is_empty() {
-                log("INFO", "Bad move: The target position does not contain a piece.");
-                return false;
-            }
-            log("INFO", "The target position contains a piece.");
-
             // Ensure target is in the rank ahead of start
             if target_rank != start_rank - 1 {
                 log("INFO", "Bad move: The target position is not in the rank immediately ahead of the starting position.");
                 return false;
             }
-            log("INFO", "The target position is in the row immediately ahead of the starting position.");
+            log("INFO", "The target position is in the rank immediately ahead of the starting position.");
+
+            // For target being empty:
+            if chess_board.borrow_space_contents(target_rank, target_file).is_empty() {
+                log("INFO", "The target position does not contain a piece.");
+                // Ensure the move is an en passant
+                match last_move {
+                    None => {
+                        log("INFO", "Bad move: This is the first move, cannot be en passant.");
+                        return false;
+                    },
+                    Some(_move) => {
+                        log("INFO", "There was a previous move.");
+                        // Ensure there is a pawn in the correct relative space
+                        if !chess_board.borrow_space_contents(target_rank + 1, target_file).is_pawn() {
+                            log(
+                                "INFO", 
+                                format!(
+                                    "Bad move: The position {}{}, below the target position, is not a pawn.",
+                                    ChessBoard::get_file_label(target_file),
+                                    ChessBoard::get_rank_label(target_rank + 1)
+                                )
+                            );
+                            return false
+                        }
+
+                        // Ensure pawn just moved there with a double move
+                        if *_move != ((target_file, target_rank - 1), (target_file, target_rank + 1)) {
+                            log("INFO", "Bad move: Pawn has not just moved with a double move.");
+                            return false;
+                        }
+                        log("INFO", "This is a valid en passant move.");
+                    }
+                }
+            }
         }
 
     // For a black pawn:
@@ -152,19 +179,46 @@ pub fn is_valid_move(start_rank: u8, start_file: u8, target_rank: u8, target_fil
         } else {
             log("INFO", "The target position is in an adjacent file to the starting position.");
 
-            // Ensure target contains a piece
-            if chess_board.borrow_space_contents(target_rank, target_file).is_empty() {
-                log("INFO", "Bad move: The target position does not contain a piece.");
-                return false;
-            }
-            log("INFO", "The target position contains a piece.");
-
             // Ensure target is in the rank ahead of start
             if target_rank != start_rank + 1 {
                 log("INFO", "Bad move: The target position is not in the rank immediately ahead of the starting position.");
                 return false;
             }
             log("INFO", "The target position is in the rank immediately ahead of the starting position.");
+
+            // For target being empty:
+            if chess_board.borrow_space_contents(target_rank, target_file).is_empty() {
+                log("INFO", "The target position does not contain a piece.");
+                // Ensure the move is an en passant
+                match last_move {
+                    None => {
+                        log("INFO", "Bad move: This is the first move, cannot be en passant.");
+                        return false;
+                    },
+                    Some(_move) => {
+                        log("INFO", "There was a previous move.");
+                        // Ensure there is a pawn in the correct relative space
+                        if !chess_board.borrow_space_contents(target_rank - 1, target_file).is_pawn() {
+                            log(
+                                "INFO", 
+                                format!(
+                                    "Bad move: The position {}{}, below the target position, is not a pawn.",
+                                    ChessBoard::get_file_label(target_file),
+                                    ChessBoard::get_rank_label(target_rank - 1)
+                                )
+                            );
+                            return false
+                        }
+
+                        // Ensure pawn just moved there with a double move
+                        if *_move != ((target_file, target_rank + 1), (target_file, target_rank - 1)) {
+                            log("INFO", "Bad move: Pawn has not just moved with a double move.");
+                            return false;
+                        }
+                        log("INFO", "This is a valid en passant move.");
+                    }
+                }
+            }
         }
     }
 

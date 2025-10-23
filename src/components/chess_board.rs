@@ -295,10 +295,10 @@ impl ChessBoard {
         self.contents[rank as usize][file as usize] = contents;
     }
 
-    fn is_valid_move(&self, start_rank: u8, start_file: u8, target_rank: u8, target_file: u8, piece: &ChessPiece) -> bool {
+    fn is_valid_move(&self, start_rank: u8, start_file: u8, target_rank: u8, target_file: u8, piece: &ChessPiece, last_move: &Option<((u8, u8), (u8, u8))>) -> bool {
         let _type = piece.get_type();
         if      _type == "none"   { false }
-        else if _type == "pawn"   {   pawn::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
+        else if _type == "pawn"   {   pawn::is_valid_move(start_rank, start_file, target_rank, target_file, &self, last_move) }
         else if _type == "rook"   {   rook::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
         else if _type == "knight" { knight::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
         else if _type == "bishop" { bishop::is_valid_move(start_rank, start_file, target_rank, target_file, &self) }
@@ -316,14 +316,15 @@ impl ChessBoard {
         }
     }
 
-    pub fn move_piece(&mut self, is_black_turn: bool, start_rank: u8, start_file: u8, target_rank: u8, target_file: u8) -> bool {
+    pub fn move_piece(&mut self, is_black_turn: bool, start_rank: u8, start_file: u8, target_rank: u8, target_file: u8, last_move: &mut Option<((u8, u8), (u8, u8))>) -> bool {
         if self.borrow_space_contents(start_rank, start_file).is_black() != is_black_turn {
             return false;
         }
         if self.is_valid_move(
             start_rank, start_file,
             target_rank, target_file,
-            self.borrow_space_contents(start_rank, start_file)
+            self.borrow_space_contents(start_rank, start_file),
+            last_move,
         ) {
             log(
                 "INFO",
@@ -335,8 +336,19 @@ impl ChessBoard {
                     Self::get_rank_label(target_rank)
                 )
             );
+            if self.borrow_space_contents(start_rank, start_file).is_pawn()
+            && self.borrow_space_contents(target_rank, target_file).is_empty()
+            && start_file != target_file {
+                log("INFO", "Detected en passant.");
+                if self.borrow_space_contents(start_rank, start_file).is_white() {
+                    self.set_space_contents(target_rank + 1, target_file, ChessPiece::default());
+                } else {
+                    self.set_space_contents(target_rank - 1, target_file, ChessPiece::default());
+                }
+            }
             self.set_space_contents(target_rank, target_file, self.clone_space_contents(start_rank, start_file));
             self.set_space_contents(start_rank, start_file, ChessPiece::default());
+            *last_move = Some(((start_file, start_rank), (target_file, target_rank)));
             return true;
         }
         log(
