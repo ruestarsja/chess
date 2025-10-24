@@ -1,3 +1,3 @@
-Another, smaller Rust project to get more comfortable in the language. This is just going to be a basic game of chess.
+Another, smaller Rust project to get more comfortable in the language. This is just a basic game of chess.
 
-I have every intention to make a GUI for this game, but absolutely no clue how to do GUIs in Rust. We'll see what happens with that.
+I'm doing the graphics and input handling using the ggez crate, and honestly have been finding it significantly easier than I was expecting. I definitely need to clean up my code, as some of the files are getting a little longer than I'd like, but it's working alright for now. I plan to tackle that once all of the core functionality has been added, as well as some optimizations.
