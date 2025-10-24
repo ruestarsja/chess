@@ -12,6 +12,7 @@ pub struct ChessPiece {
 
     is_black: bool,
     piece_type: u8,
+    has_moved: bool,
 
 }
 
@@ -22,6 +23,7 @@ impl Default for ChessPiece {
         Self {
             is_black: false,
             piece_type: Self::get_type_num(String::from("none")),
+            has_moved: false,
         }
     }
 
@@ -101,6 +103,7 @@ impl ChessPiece {
         Self {
             is_black: color == "black",
             piece_type: Self::get_type_num(piece_type),
+            has_moved: false,
         }
     }
 
@@ -183,9 +186,9 @@ impl ChessPiece {
         self.get_type() == "pawn"
     }
 
-    // fn is_rook(&self) -> bool {
-    //     self.get_type() == "rook"
-    // }
+    pub fn is_rook(&self) -> bool {
+        self.get_type() == "rook"
+    }
 
     // fn is_knight(&self) -> bool {
     //     self.get_type() == "knight"
@@ -199,8 +202,16 @@ impl ChessPiece {
     //     self.get_type() == "queen"
     // }
 
-    // fn is_king(&self) -> bool {
-    //     self.get_type() == "king"
-    // }
+    pub fn is_king(&self) -> bool {
+        self.get_type() == "king"
+    }
+
+    pub fn mark_moved(&mut self) {
+        self.has_moved = true;
+    }
+
+    pub fn has_moved(&self) -> bool {
+        self.has_moved
+    }
 
 }

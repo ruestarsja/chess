@@ -249,26 +249,26 @@ impl ChessBoard {
         )
     }
 
-    // pub fn get_file(file_label: String) -> u8 {
-    //     if      file_label == "a" { 0 }
-    //     else if file_label == "b" { 1 }
-    //     else if file_label == "c" { 2 }
-    //     else if file_label == "d" { 3 }
-    //     else if file_label == "e" { 4 }
-    //     else if file_label == "f" { 5 }
-    //     else if file_label == "g" { 6 }
-    //     else if file_label == "h" { 7 }
-    //     else {
-    //         log(
-    //             "ERROR",
-    //             format!(
-    //                 "crate::components::chess_board::ChessBoard::get_file_label received the invalid file label {}",
-    //                 file_label
-    //             )
-    //         );
-    //         panic!("Invalid file label {}", file_label);
-    //     }
-    // }
+    pub fn get_file(file_label: String) -> u8 {
+        if      file_label == "a" { 0 }
+        else if file_label == "b" { 1 }
+        else if file_label == "c" { 2 }
+        else if file_label == "d" { 3 }
+        else if file_label == "e" { 4 }
+        else if file_label == "f" { 5 }
+        else if file_label == "g" { 6 }
+        else if file_label == "h" { 7 }
+        else {
+            log(
+                "ERROR",
+                format!(
+                    "crate::components::chess_board::ChessBoard::get_file_label received the invalid file label {}",
+                    file_label
+                )
+            );
+            panic!("Invalid file label {}", file_label);
+        }
+    }
 
 }
 
@@ -279,9 +279,9 @@ impl ChessBoard {
         &(self.contents[rank as usize][file as usize])
     }
 
-    // fn borrow_mut_space_contents(&mut self, rank: u8, file: u8) -> &mut ChessPiece {
-    //     &mut (self.contents[rank as usize][file as usize])
-    // }
+    fn borrow_mut_space_contents(&mut self, rank: u8, file: u8) -> &mut ChessPiece {
+        &mut (self.contents[rank as usize][file as usize])
+    }
 
     fn clone_space_contents(&self, rank: u8, file: u8) -> ChessPiece {
         self.contents[rank as usize][file as usize].clone()
@@ -336,6 +336,8 @@ impl ChessBoard {
                     Self::get_rank_label(target_rank)
                 )
             );
+
+            // Check for en passant and remove the attacked pawn
             if self.borrow_space_contents(start_rank, start_file).is_pawn()
             && self.borrow_space_contents(target_rank, target_file).is_empty()
             && start_file != target_file {
@@ -346,9 +348,32 @@ impl ChessBoard {
                     self.set_space_contents(target_rank - 1, target_file, ChessPiece::default());
                 }
             }
+
+            // Check for castle and move the associated rook
+            if self.borrow_space_contents(start_rank, start_file).is_king()
+            && (start_file as i8 - target_file as i8) == 2 {
+                log("INFO", "Detected castle.");
+                if target_file < start_file {
+                    log("INFO", "Detected queenside castle.");
+                    let rook_file = ChessBoard::get_file(String::from("a"));
+                    self.set_space_contents(start_rank, target_file + 1, self.clone_space_contents(start_rank, rook_file));
+                    self.set_space_contents(start_rank, rook_file, ChessPiece::default());
+                } else {
+                    log("INFO", "Detected kingside castle.");
+                    let rook_file = ChessBoard::get_file(String::from("h"));
+                    self.set_space_contents(start_rank, target_file - 1, self.clone_space_contents(start_rank, rook_file));
+                    self.set_space_contents(start_rank, rook_file, ChessPiece::default());
+                }
+            }
+
+            // Move piece (typical updates)
             self.set_space_contents(target_rank, target_file, self.clone_space_contents(start_rank, start_file));
             self.set_space_contents(start_rank, start_file, ChessPiece::default());
+            self.borrow_mut_space_contents(target_rank, target_file).mark_moved();
             *last_move = Some(((start_file, start_rank), (target_file, target_rank)));
+
+            // TODO: check for promotion here (once implemented)
+
             return true;
         }
         log(
